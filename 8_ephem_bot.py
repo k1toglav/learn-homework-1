@@ -13,45 +13,39 @@
 
 """
 import logging
-
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
-logging.basicConfig(format='%(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO,
-                    filename='bot.log')
+import settings
+from ephem import *
 
-
-PROXY = {
-    'proxy_url': 'socks5://t1.learn.python.ru:1080',
-    'urllib3_proxy_kwargs': {
-        'username': 'learn',
-        'password': 'python'
-    }
-}
-
+logging.basicConfig(filename='bot.log', level=logging.INFO)
 
 def greet_user(update, context):
-    text = 'Вызван /start'
-    print(text)
-    update.message.reply_text(text)
+  print('Вызван /start')
+  update.message.reply_text('Здравствуй, пользователь')
 
-
-def talk_to_me(update, context):
-    user_text = update.message.text
-    print(user_text)
-    update.message.reply_text(text)
-
+def call_planet(update, context):
+  print('Вызвана команда /planet')
+  update.message.reply_text('Введите название планеты на английском языке ')
+  planet_name = update.message.text.split()
+  planet_name = planet_name[0]
+  print(planet_name)
+  answer = constellation(planet_name, ('2022'))
+  print(answer)
+  update.message.reply_text(answer)
 
 def main():
-    mybot = Updater("КЛЮЧ, КОТОРЫЙ НАМ ВЫДАЛ BotFather", request_kwargs=PROXY, use_context=True)
+  mybot = Updater(settings.API_KEY, use_context=True)
 
-    dp = mybot.dispatcher
-    dp.add_handler(CommandHandler("start", greet_user))
-    dp.add_handler(MessageHandler(Filters.text, talk_to_me))
+  dp = mybot.dispatcher
+  dp.add_handler(CommandHandler('start', greet_user))
+  dp.add_handler(CommandHandler('planet', call_planet))
+  dp.add_handler(MessageHandler(Filters.text, greet_user))
+  dp.add_handler(MessageHandler(Filters.text, call_planet))
 
-    mybot.start_polling()
-    mybot.idle()
+  logging.info('Bot started')
 
+  mybot.start_polling()
+  mybot.idle()
 
-if __name__ == "__main__":
-    main()
+main()
